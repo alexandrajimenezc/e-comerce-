@@ -34,6 +34,28 @@ CategoryController.getAllCategories = async (req, res) => {
     }
 };
 
+CategoryController.readCategory = async (req, res) => {
+    try {
+
+        let { id } = req.params;
+        const categoryData= await CategoryModel.findById(id)
+        if (!categoryData) {
+        return res
+        .status(200)
+        .json({ message: 'There is no such category mmg' })
+        }
+        res
+        .json({categoryData})
+    
+    }
+    catch (error) {
+        console.error(error)
+         res
+            status(500)
+            .json({ message: 'problem when viewing category data' });
+    
+    }
+}
 CategoryController.updateCategory = async (req, res) => {
     try {
         let updateCategory = await CategoryModel.findByIdAndUpdate(req.params.id, req.body, { new: true })
