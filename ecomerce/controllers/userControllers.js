@@ -1,6 +1,8 @@
 const UserModel = require('../models/userModel');
-const bcrypt = require('bcryptjs')
+const transporter = require('../config/nodemailer');
+const bcrypt = require('bcryptjs');
 const UserController = {}
+//const  {isConfirmado}= require('../middleware/verificar')
 
 const jwt = require('jsonwebtoken');
 const config = process.env.secret
@@ -9,6 +11,15 @@ const config = process.env.secret
 UserController.createUser = async (req, res) => {
     try {
         const user = await UserModel.create(req.body);
+          await transporter.sendMail({
+            to:user.email,
+            html:`
+            <img src= "https://www3.gobiernodecanarias.org/medusa/ecoescuela/lenguasextranjerasceplanzarote/files/2019/09/2771039.jpg" width="400" height="300" alt="Bienvenido/Welcome"/>
+            <h3>Bienvenid@ al restaurant ${user.name} </h3>
+            
+            <div> Haz click <a href="http://localhost:3000/users/confirm/${user._id}">  aquí  </a>Para confirmar tu registro</div>
+            `
+        })  
         res
             .status(201)
             .json({ user, message: 'User successfully created' })
@@ -20,8 +31,28 @@ UserController.createUser = async (req, res) => {
 
     }
 };
+UserController.confirmEmailUser= async(req,res) =>{
+try {
+    const userData= await UserModel.findByIdAndUpdate(req.params.id,{confirmado: true},{new:true})
+    console.log(userData)
+    res.json({message:'correo verificado'})
+} catch (error) {
+    console.error(error)
+        res
+            .status(500)
+            .json({ message: 'Problem to valid a user' });
+}
+
+
+}
 UserController.loginUser = async (req, res) => {
     try {
+      
+    const usuario = await UserModel.findOne({email: req.body.email})
+    console.log(usuario) 
+
+    if(usuario.confirmado === true){
+
         const userLogin = await UserModel.findOne({
             email: req.body.email
         })
@@ -55,6 +86,12 @@ UserController.loginUser = async (req, res) => {
                 token,
                 message: 'WELCOME ' + userLogin.name
             });
+
+    }else{
+        res.json({message:'NO validado el corre0'})
+    }  
+
+ 
     }
     catch (error) {
         console.error(error)
@@ -91,8 +128,13 @@ UserController.readUser = async (req, res) => {
 UserController.getAllUsers = async (req, res) => {
 
     try {
-        const users = await UserModel.find()
-        res.send(users)
+ 
+         if(req.body.role === 'administrador'){
+            const users = await UserModel.find()
+            res.json({users})
+        }else{
+            res.json({message:'Sorry you are not admin'})
+        }
 
     } catch (error) {
 
@@ -107,8 +149,6 @@ UserController.getAllUsers = async (req, res) => {
 UserController.updateUser = async (req, res) => {
     try {
     
-
-
         let usuario = await UserModel.findByIdAndUpdate(req.params.id, req.body, { new: true});
         console.log(usuario)
         res.json({ usuario, message: 'usuario actualizado' })
@@ -128,6 +168,13 @@ UserController.deleteUser = async (req, res) => {
         res.status(500).json({ message: 'Problem removing user' })
     }
 }
-
+UserController.logout= async (req, res)=> {
+     const usuarioLogOut = await UserModel.findByIdAndUpdate(req.params.id, {
+            $pull: {
+                tokens: req.headers.authorization
+            }
+        },{ new: true})
+res.json({usuarioLogOut, message:`${usuarioLogOut.name} cerro sesión`})
+},
 
 module.exports = UserController;

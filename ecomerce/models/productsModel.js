@@ -5,6 +5,10 @@ const productsSchema = new Schema({
         type: String,
         required: true
     },
+    description: {
+        type: String,
+        required: [true, 'El campo descripción es requerido']
+    },
     price:{
         type:Number,
         required : true
@@ -16,7 +20,19 @@ const productsSchema = new Schema({
     categories:[{
         type: ObjectId,
         ref:'Category'
-    }]
+    }],
+    stock: {
+        type: Number,
+        required: [true, 'El campo stock es requerido']
+    },
+    orderIds: [{
+        type: ObjectId,
+        ref: 'Order'
+    }],
+    userId: {
+        type: ObjectId,
+        ref: 'User'
+    }
 },{
     timestamps: true    
 })

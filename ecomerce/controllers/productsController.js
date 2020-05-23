@@ -1,23 +1,25 @@
 const ProductsModel = require('../models/ProductsModel')
-const CategoryModel = require('../models/CategoryModel')
+const CategoryModel = require('../models/categoryModel')
 const ProductController = {};
 
 ProductController.createProduct = async (req, res) => {
     try {
-        let { name, price, image_path, categories } = req.body
+        let { _id,name, price, image_path, categories } = req.body
         const producto = await ProductsModel.create({
-            name,
-            price,
-            image_path,
-            categories
+            id:_id,
+            name:name,
+            price:price,
+            image_path:image_path,
+            categories:categories
         })
         let createNewProduct = await CategoryModel.findByIdAndUpdate(categories, {
             $pull: {
-                products: req.body._id
+                products: producto._id
             }
         }, {
             new: true
         })
+        
 
         console.log(createNewProduct)
 
