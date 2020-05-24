@@ -1,25 +1,25 @@
 const orderModel = require('../models/orderModel')
-//const transporter = require('../config/nodemailer')
-//const userModel = require('../models/userModel')
+const transporter = require('../config/nodemailer')
+const userModel = require('../models/userModel')
 orderController={}
 
 orderController.createOrder = async (req ,res) =>{
     try {
         
-       // let {status,deliveryDate,products,user,_id} = req.body
-       //req.body.user = req.user._id
+       
+       req.body.status = 'pending';
+       const createNewOrder = await orderModel.create(req.body)
+       const usuario = await userModel.findById(req.body.user)
+          await transporter.sendMail({
 
-        req.body.status = 'pending';
-        const createNewOrder = await orderModel.create(req.body)
-        /* await transporter.sendMail({
-
-            to:user.email,
+            to:usuario.email,
             html:`
-            <h3>Gracias por tu compra ${user.name} </h3>
+            <h3>Gracias por tu compra ${usuario.name} </h3>
             
-            <div> Orden de compra : </div>
+            <div> Orden de compra:</br>Producto: </br> ${createNewOrder.products[0]._id} </br> Cantidad:</br> ${createNewOrder.products[0].cantidad} </div>
             `
-        })  */
+        })   
+        console.log(createNewOrder.products[0].cantidad)
         res
             .status(201)
             .json({createNewOrder, message:''})
