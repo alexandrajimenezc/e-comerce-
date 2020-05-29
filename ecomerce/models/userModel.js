@@ -11,11 +11,18 @@ const UserSchema = new Schema(
             sparse: true,
             trim: true
         },
+        username:{
+            type:String,
+            required: [true,'Ingrese un Email'],
+            unique: true,
+            index: true,
+            trim: true
+        },
         email:{ 
             type:String,
             required: [true,'Ingrese un Email'],
-            unique: true
-           
+            unique: true,
+            index: true
         },
         confirmado:{
             type:Boolean,
@@ -37,10 +44,20 @@ const UserSchema = new Schema(
             enum:['usuario','vendedor','administrador']
         },
         tokens:[String],
+        //ORDER PARA LOS USUARIOS Y VENDEDORES
         orders:[{
             type:ObjectId,
             ref:'Order'
-        }]
+        }],
+        //PARA LOS VENDEDORES
+        products:[{
+            type: ObjectId ,
+            ref:'Product'
+        }],
+        comment:[{
+            type:ObjectId,
+            ref:'Comments'
+        }],
 
     }, {
         timestamps: true,

@@ -21,11 +21,11 @@ CategoryController.createCategory = async (req, res) => {
 
 CategoryController.getAllCategories = async (req, res) => {
     try {
-
-        let allCategories = await CategoryModel.find().populate('products')
+// CAMBIO A QUE SOLO RECIBA EL NOMBRE Y ID DE LA CATEGORIA?? 
+        let allCategories = await CategoryModel.find()
         res
             .status(200)
-            .json({ allCategories, message: '' })
+            .json({ allCategories, message: 'Solo categorias' })
     } catch (error) {
         console.error(error)
         res
@@ -33,6 +33,22 @@ CategoryController.getAllCategories = async (req, res) => {
             .json({ message: 'There was a problem getting the categories' })
     }
 };
+
+CategoryController.getAllCategoriesProducts = async (req, res) => {
+    try {
+
+        let allCategoriesP = await CategoryModel.find().populate('products')
+        res
+            .status(200)
+            .json({ allCategoriesP, message: 'Categorias con sus productos' })
+    } catch (error) {
+        console.error(error)
+        res
+            .status(500)
+            .json({ message: 'There was a problem getting the categories' })
+    }
+};
+
 
 CategoryController.readCategory = async (req, res) => {
     try {
@@ -71,6 +87,7 @@ CategoryController.updateCategory = async (req, res) => {
         }
 };
 
+// falta que cuando elimine una categoria , elimine todos los productos en esa categoria
 CategoryController.deleteCategory = async (req, res) => {
     try {
         await CategoryModel.findByIdAndDelete(req.params.id)

@@ -1,26 +1,36 @@
 const ProductsModel = require('../models/ProductsModel')
 const CategoryModel = require('../models/categoryModel')
+const UserModel = require('../models/userModel');
 const ProductController = {};
 
+//Falta que solo tenga acceso el role: admin o vendedor, y el usuario solo pueda ver
+// falta productos por vendedor
+//falta roductos por categoria
 ProductController.createProduct = async (req, res) => {
     try {
-        let { _id,name, price, image_path, categories } = req.body
+
+        let { _id,name,description, price, image_path, categories,stock,userId} = req.body
         const producto = await ProductsModel.create({
             id:_id,
             name:name,
+            description:description,
             price:price,
             image_path:image_path,
-            categories:categories
+            categories:categories,
+            stock:stock,
+            userId: userId
         })
         let createNewProduct = await CategoryModel.findByIdAndUpdate(categories, {
-            $pull: {
+            $push: {
                 products: producto._id
             }
-        }, {
-            new: true
-        })
-        
-
+        }, {new: true})
+        let vendedorCreaProducto = await UserModel.findByIdAndUpdate(userId,{
+            $push: {
+                products: producto._id
+            }
+        },{new: true})
+        console.log(vendedorCreaProducto)
         console.log(createNewProduct)
 
         res
@@ -39,7 +49,7 @@ ProductController.readProduct = async (req, res) => {
     try {
 
         let { id } = req.params;
-        const productData= await ProductsModel.findById(id)
+        const productData= await ProductsModel.findById(id).populate('categories')
         if (!productData) {
         return res
         .status(200)
@@ -93,7 +103,26 @@ ProductController.upadateProduct = async (req, res) => {
 
 ProductController.deleteProduct = async (req, res) => {
     try {
-        await ProductsModel.findByIdAndDelete(req.params.id)
+
+        let { id } = req.params;
+        let producto = await ProductsModel.findById(id)
+        console.log(producto.userId)
+        console.log(producto)
+        let categoria = await CategoryModel.findByIdAndUpdate(producto.categories, {
+            $pull: {
+                products: producto._id
+            }
+        }, {new: true})
+        console.log(categoria)
+
+         let vendedor = await UserModel.findByIdAndUpdate(producto.userId,{
+            $pull:{
+                products:producto._id
+            }
+        }, { new: true })
+ 
+ console.log(vendedor)
+        await ProductsModel.findByIdAndDelete(req.params.id) 
         res
             .json({ message: 'eliminado' })
     } catch (error) {
@@ -104,8 +133,61 @@ ProductController.deleteProduct = async (req, res) => {
     }
 }
 
+//producto por vendedor (se le pasa id vendedor)
+ProductController.readProductPvendedor = async (req, res) => {
+    try {
 
-ProductController.borratodo = async (req, res) => {
+        let { id } = req.params;
+       const vendedor = await UserModel.findById(id)
+       console.log(vendedor)
+        const productData= await ProductsModel.find({userId: id}).populate('categories')
+  
+        if (!productData) {
+        return res
+        .status(200)
+        .json({ message: 'no existe este producto para algún vendedor' })
+        }
+        res
+        .json({productData })
+    
+    } 
+    catch (error) {
+        console.error(error)
+         res
+            status(500)
+            .json({ message: 'problem when viewing product data' });
+    
+    }
+};
+//Producto por categoria (se le pasa id de categoria)
+ProductController.readProductPcategoria = async (req, res) => {
+    try {
+
+        let { id } = req.params;
+        const categoria = await CategoryModel.findById(id)
+        console.log(categoria)
+        const productData= await ProductsModel.find({categories: id}).populate('categories')
+  
+        if (!productData) {
+        return res
+        .status(200)
+        .json({ message: 'no existe este producto para algún categoria' })
+        }
+        res
+        .json({productData })
+    
+    } 
+    catch (error) {
+        console.error(error)
+         res
+            status(500)
+            .json({ message: 'problem when viewing product data' });
+    
+    }
+};
+
+
+/* ProductController.borratodo = async (req, res) => {
     try {
         ProductsModel.deleteMany()
 
@@ -115,5 +197,5 @@ ProductController.borratodo = async (req, res) => {
             .status(500)
             .json({ message: 'Hubo un problema al eliminar todos los producto' })
     }
-};
+}; */
 module.exports = ProductController;
