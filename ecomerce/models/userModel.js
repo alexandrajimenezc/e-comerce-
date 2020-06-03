@@ -42,7 +42,8 @@ const UserSchema = new Schema(
             type:String,
             default:'usuario',
             enum:['usuario','vendedor','administrador']
-        },
+        }, 
+        imagePath:String,
         tokens:[String],
         //ORDER PARA LOS USUARIOS Y VENDEDORES
         orders:[{
@@ -54,11 +55,10 @@ const UserSchema = new Schema(
             type: ObjectId ,
             ref:'Product'
         }],
-        comment:[{
-            type:ObjectId,
-            ref:'Comments'
+        wishListU: [{
+             type: ObjectId,
+              ref: 'Product'
         }],
-
     }, {
         timestamps: true,
         toJSON: {

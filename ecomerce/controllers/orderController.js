@@ -1,13 +1,15 @@
 const orderModel = require('../models/orderModel')
-//const transporter = require('../config/nodemailer')
+const transporter = require('../config/nodemailer')
 const userModel = require('../models/userModel')
 orderController={}
 //Crear compra
+
 orderController.createOrder = async (req ,res) =>{
     try {
         // l14 create.order._id
        
        req.body.status = 'pending';
+       req.body.user = req.usuario._id
        const createNewOrder = await orderModel.create(req.body)
        const usuario = await userModel.findByIdAndUpdate(req.body.user, {
         $push: {
@@ -16,7 +18,7 @@ orderController.createOrder = async (req ,res) =>{
     });
        console.log(usuario)
        //findById(req.body.user)
-       /*    await transporter.sendMail({
+           await transporter.sendMail({
 
             to:usuario.email,
             html:`
@@ -25,7 +27,7 @@ orderController.createOrder = async (req ,res) =>{
             <div> Orden de compra: Producto: ${createNewOrder.products[0]._id}  Cantidad: ${createNewOrder.products[0].cantidad} </div>
             `
         })   
-        console.log(createNewOrder.products[0].cantidad) */
+        console.log(createNewOrder.products[0].cantidad) 
         res
             .status(201)
             .json({createNewOrder, message:''})
@@ -37,23 +39,9 @@ orderController.createOrder = async (req ,res) =>{
         .json({message:'Problema con la orden de compra'})
     }
 };
-//ver compras
 
-orderController.readAllOrders = async (req, res) =>{
 
-    try {
-      const readorders = await orderModel.find()
 
-        res
-            .status(201)
-            .json({readorders, message:''})
-    } catch (error) {
-        console.error(error)
-    res
-        .status(500)
-        .json({message:'Problema al ver la orden de compra'})
-    }
-}
 orderController.readOrder = async (req, res) =>{
 
     try {
@@ -71,12 +59,47 @@ orderController.readOrder = async (req, res) =>{
 }
 
 
+//ver compras
+
+orderController.readAllOrders = async (req, res) =>{
+
+    try {
+      const readorders = await orderModel.find()
+
+        res
+            .status(201)
+            .json({readorders, message:''})
+    } catch (error) {
+        console.error(error)
+    res
+        .status(500)
+        .json({message:'Problema al ver la orden de compra'})
+    }
+}
+
+
 
 orderController.updateOrder = async (req, res) =>{
     try {
-        let ordereditada= await orderModel.findByIdAndUpdate(req.params.id, req.body, { new: true});
-        console.log(ordereditada)
-        res.json({ ordereditada, message: 'usuario actualizado' })
+        const buscandoOrder = await orderModel.findById(req.params.id)
+        console.log(buscandoOrder.products[0]._id)//producto
+        //console.log(buscandoOrder.)
+
+        /* let orderEditada= await orderModel.findByIdAndUpdate(req.params.id, req.body, { new: true});
+        console.log(orderEditada) */
+
+       /*  await transporter.sendMail({
+
+            to:usuario.email,
+            html:`
+            <h3>Tu order a sido editada ${usuario.name} </h3>
+            
+            <div> Orden de compra: Producto: ${createNewOrder.products[0]._id}  Cantidad: ${createNewOrder.products[0].cantidad} </div>
+            `
+        })   
+ */
+
+        res.json({ buscandoOrder, message: 'usuario actualizado' })
     } catch (error) {
         
     }

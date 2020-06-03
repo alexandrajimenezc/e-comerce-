@@ -17,6 +17,10 @@ const productsSchema = new Schema({
         type:String,
         required:true
     },
+    wishListP: [{  
+        type: ObjectId,
+        ref: 'User'
+    }],
     categories:[{
         type: ObjectId,
         ref:'Category'
@@ -25,9 +29,16 @@ const productsSchema = new Schema({
         type: Number,
         required: [true, 'El campo stock es requerido']
     },
-    comment:[{
-        type:ObjectId,
-        ref:'Comments'
+    commentsOfProduct:[{
+        assessment: Number,
+        userId: { 
+            type: ObjectId,
+             ref: 'User' 
+            },
+        comments: String,
+        image_path: String,
+        commentsDate: Date
+        
     }],
     orderIds: [{
         type: ObjectId,

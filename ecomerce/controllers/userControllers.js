@@ -1,11 +1,11 @@
 const UserModel = require('../models/userModel');
 const transporter = require('../config/nodemailer');
 const bcrypt = require('bcryptjs');
-const UserController = {}
-//const  {isConfirmado}= require('../middleware/verificar')
-
 const jwt = require('jsonwebtoken');
 const config = process.env.secret
+const UserController = {}
+
+
 
 
 UserController.createUser = async (req, res) => {
@@ -92,9 +92,6 @@ UserController.loginUser = async (req, res) => {
                 message: 'WELCOME ' + usuario.name
             });
 
-    
-
- 
     }
     catch (error) {
         console.error(error)
@@ -117,6 +114,14 @@ UserController.readUser = async (req, res) => {
         .json({ message: 'There is no such user mmg' })
         }  */
 
+
+/* //probara así
+        const usuario= await UserModel.findById(req.usuario._id)
+        .populate('wishList')
+        .populate('orders')
+
+        res
+            .json({usuario}) */
         //solo esto y devuelve la inf del usuario
         res
         .json({usuario: req.usuario.populate('orders')})
@@ -133,11 +138,11 @@ UserController.readUser = async (req, res) => {
 UserController.getAllUsers = async (req, res) => {
     try {
     
-        const user = await UserModel.find()
+        const users = await UserModel.find()
         console.log(req.body.role)
         res
             .status(200)
-            .json({user})
+            .json({users})
 
     
 
@@ -154,7 +159,9 @@ UserController.getAllUsers = async (req, res) => {
 
 UserController.updateUser = async (req, res) => {
     try {
-        //req.body.role = "usuario";
+        console.log(req.usuario.role)
+        if(req.usuario.role === 'usuario') req.body.role = 'usuario';
+        console.log(req.usuario.role)
         const userData = { ...req.body }
         if ( req.file ) userData.imagePath = req.file.filename;
         if ( req.body.password ) userData.password = await bcrypt.hash( req.body.password, 10 );
@@ -192,6 +199,7 @@ UserController.deleteUser = async (req, res) => {
         res.status(500).json({ message: 'Problem removing user' })
     }
 }
+
 UserController.deleteUserA = async (req, res) => {
     try {
 
@@ -212,8 +220,71 @@ UserController.logout= async (req, res)=> {
             }
         },{ new: true})
 res.json({usuarioLogOut, message:`${usuarioLogOut.name} cerro sesión`})
-},
+}
 
 
+UserController.resetPassword= async (req,res) =>{
+        try {  
+  
+            console.log(req.usuario)
+            console.log(req.body)
+            console.log(req.body.password)
+            const salt= await bcrypt.genSalt(10);
+            const clave= await bcrypt.hash(req.body.password, salt);
+            const user = await UserModel.findOneAndUpdate({email: req.usuario.email},{password: clave},{new:true})
 
+            console.log(clave)
+            console.log(user)
+            res.json({usuario: req.usuario})
+
+       
+        
+        } catch (error) {
+            console.error(error);
+            res.status(500).send({message:'There was a problem trying to reset the password'})
+        }
+    } 
+
+
+    //pq del params y no del body??
+
+UserController.recover = async (req, res) =>{
+    try {
+ 
+        const recoverToken = jwt.sign({email:req.params.email},config,{expiresIn:'48h'})
+        const url ='http://localhost:3000/users/recover/' + recoverToken
+    
+        await transporter.sendMail({
+            to: req.params.email,
+            subject:'Recupere su cuenta',
+            html:`
+            <h3>Recupere su cuenta</h3>
+            <a href="${url}">Click aquí</a>
+            Este link se explota en 48 horas
+            `
+        })
+        res.json({message:'Un msj de recuperacíon fue enviado a su email'})
+    } catch (error) {
+        console.error(error)
+        res
+            .status(500)
+            .json({error})
+    }
+}
+//enviar a una vista cont vieja , cont nva
+//arrgalar estooo
+/* UserController.confirmRecover= async(req,res) =>{
+    try {
+        const token = req.params.recoverToken;
+        
+        console.log(token)
+        res.json({message:'correo recuperado'})
+    } catch (error) {
+        console.error(error)
+            res
+                .status(500)
+                .json({ message: 'Problem to valid a user' });
+    }
+
+} */
 module.exports = UserController;

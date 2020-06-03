@@ -1,4 +1,6 @@
 const CategoryModel = require('../models/categoryModel')
+const ProductsModel = require('../models/ProductsModel')
+const UserModel = require('../models/userModel');
 const CategoryController = {};
 
 
@@ -21,7 +23,7 @@ CategoryController.createCategory = async (req, res) => {
 
 CategoryController.getAllCategories = async (req, res) => {
     try {
-// CAMBIO A QUE SOLO RECIBA EL NOMBRE Y ID DE LA CATEGORIA?? 
+        // CAMBIO A QUE SOLO RECIBA EL NOMBRE Y ID DE LA CATEGORIA?? 
         let allCategories = await CategoryModel.find()
         res
             .status(200)
@@ -33,6 +35,7 @@ CategoryController.getAllCategories = async (req, res) => {
             .json({ message: 'There was a problem getting the categories' })
     }
 };
+
 
 CategoryController.getAllCategoriesProducts = async (req, res) => {
     try {
@@ -49,27 +52,42 @@ CategoryController.getAllCategoriesProducts = async (req, res) => {
     }
 };
 
+CategoryController.CategoriesProducts = async (req, res) => {
+    try {
+
+        let CategoriesP = await CategoryModel.findById(req.params.id).populate('products')
+        res
+            .status(200)
+            .json({ CategoriesP, message: 'Categoria con sus productos' })
+    } catch (error) {
+        console.error(error)
+        res
+            .status(500)
+            .json({ message: 'There was a problem getting the categories' })
+    }
+};
+
 
 CategoryController.readCategory = async (req, res) => {
     try {
 
         let { id } = req.params;
-        const categoryData= await CategoryModel.findById(id)
+        const categoryData = await CategoryModel.findById(id)
         if (!categoryData) {
-        return res
-        .status(200)
-        .json({ message: 'There is no such category mmg' })
+            return res
+                .status(200)
+                .json({ message: 'There is no such category mmg' })
         }
         res
-        .json({categoryData})
-    
+            .json({ categoryData })
+
     }
     catch (error) {
         console.error(error)
-         res
-            status(500)
+        res
+        status(500)
             .json({ message: 'problem when viewing category data' });
-    
+
     }
 }
 CategoryController.updateCategory = async (req, res) => {
@@ -84,12 +102,25 @@ CategoryController.updateCategory = async (req, res) => {
         res
             .status(500)
             .json({ message: 'there was a problem updating the category' })
-        }
+    }
 };
 
 // falta que cuando elimine una categoria , elimine todos los productos en esa categoria
 CategoryController.deleteCategory = async (req, res) => {
     try {
+        const categoria = await CategoryModel.findById(req.params.id)
+        //console.log(categoria)
+        console.log(categoria.products)
+        const producto = await ProductsModel.findById(categoria.products)
+        console.log(producto.userId, producto.wishListP)
+        const vendedor = await UserModel.findByIdAndUpdate(producto.userId, {
+            $pull: {
+                products: producto._id
+            }
+        })
+        console.log(vendedor)
+
+        await ProductsModel.findByIdAndDelete(categoria.products)
         await CategoryModel.findByIdAndDelete(req.params.id)
         res
             .json({ message: 'category deleted' })
@@ -98,8 +129,8 @@ CategoryController.deleteCategory = async (req, res) => {
         res
             .status(500)
             .json({ message: 'There was a problem deleting the category' })
-        }
-     
+    }
+
 
 };
 module.exports = CategoryController;
