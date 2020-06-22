@@ -15,8 +15,8 @@ router.get('/logout', verificarToken, logout);//*
 router.post('/reset', verificarToken,resetPassword);//*  
 
 //arreglar
-router.get('/recover/:email', recover); //arreglar
-router.get('/recover/:recoverToken', confirmRecover);//arreglar controlador
+//router.get('/recover/:email', recover); //arreglar
+//router.get('/recover/:recoverToken', confirmRecover);//arreglar controlador
 
 // solo el administrador
 router.get('/',verificarToken,is(['administrador']), getAllUsers) //*

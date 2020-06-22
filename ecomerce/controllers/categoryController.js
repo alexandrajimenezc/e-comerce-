@@ -23,11 +23,10 @@ CategoryController.createCategory = async (req, res) => {
 
 CategoryController.getAllCategories = async (req, res) => {
     try {
-        // CAMBIO A QUE SOLO RECIBA EL NOMBRE Y ID DE LA CATEGORIA?? 
         let allCategories = await CategoryModel.find()
         res
             .status(200)
-            .json({ allCategories, message: 'Solo categorias' })
+            .json({ allCategories, message: 'Categories' })
     } catch (error) {
         console.error(error)
         res
@@ -43,7 +42,7 @@ CategoryController.getAllCategoriesProducts = async (req, res) => {
         let allCategoriesP = await CategoryModel.find().populate('products')
         res
             .status(200)
-            .json({ allCategoriesP, message: 'Categorias con sus productos' })
+            .json({ allCategoriesP, message: 'All the Categories with products' })
     } catch (error) {
         console.error(error)
         res
@@ -58,7 +57,7 @@ CategoryController.CategoriesProducts = async (req, res) => {
         let CategoriesP = await CategoryModel.findById(req.params.id).populate('products')
         res
             .status(200)
-            .json({ CategoriesP, message: 'Categoria con sus productos' })
+            .json({ CategoriesP, message: 'Categories with products' })
     } catch (error) {
         console.error(error)
         res
@@ -105,11 +104,10 @@ CategoryController.updateCategory = async (req, res) => {
     }
 };
 
-// falta que cuando elimine una categoria , elimine todos los productos en esa categoria
+
 CategoryController.deleteCategory = async (req, res) => {
     try {
         const categoria = await CategoryModel.findById(req.params.id)
-        //console.log(categoria)
         console.log(categoria.products)
         const producto = await ProductsModel.findById(categoria.products)
         console.log(producto.userId, producto.wishListP)
@@ -122,8 +120,8 @@ CategoryController.deleteCategory = async (req, res) => {
 
         await ProductsModel.findByIdAndDelete(categoria.products)
         await CategoryModel.findByIdAndDelete(req.params.id)
-        res
-            .json({ message: 'category deleted' })
+        res 
+            .json({ message: 'category deleted' }) //que status?
     } catch (error) {
         console.error(error)
         res

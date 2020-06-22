@@ -248,7 +248,7 @@ UserController.resetPassword= async (req,res) =>{
 
     //pq del params y no del body??
 
-UserController.recover = async (req, res) =>{
+/* UserController.recover = async (req, res) =>{
     try {
  
         const recoverToken = jwt.sign({email:req.params.email},config,{expiresIn:'48h'})
@@ -270,7 +270,7 @@ UserController.recover = async (req, res) =>{
             .status(500)
             .json({error})
     }
-}
+} */
 //enviar a una vista cont vieja , cont nva
 //arrgalar estooo
 /* UserController.confirmRecover= async(req,res) =>{

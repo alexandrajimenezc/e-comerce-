@@ -1,85 +1,92 @@
 const orderModel = require('../models/orderModel')
 const transporter = require('../config/nodemailer')
+const ProductsModel = require('../models/ProductsModel')
 const userModel = require('../models/userModel')
-orderController={}
-//Crear compra
+orderController = {}
 
-orderController.createOrder = async (req ,res) =>{
+orderController.createOrder = async (req, res) => {
     try {
-        // l14 create.order._id
-       
-       req.body.status = 'pending';
-       req.body.user = req.usuario._id
-       const createNewOrder = await orderModel.create(req.body)
-       const usuario = await userModel.findByIdAndUpdate(req.body.user, {
-        $push: {
-            orders: createNewOrder._id
-        }
-    });
-       console.log(usuario)
-       //findById(req.body.user)
-           await transporter.sendMail({
 
-            to:usuario.email,
-            html:`
+
+        req.body.status = 'pending';
+        req.body.user = req.usuario._id
+        const createNewOrder = await orderModel.create(req.body)
+        const usuario = await userModel.findByIdAndUpdate(req.body.user, {
+            $push: {
+                orders: createNewOrder._id
+            }
+        });
+        let idp = createNewOrder.products[0]._id
+        const product = await ProductsModel.findByIdAndUpdate(idp, {
+            $push: {
+                orderIds: idp
+            }
+        })
+
+
+        console.log(product)
+        await transporter.sendMail({
+
+            to: usuario.email,
+            html: `
             <h3>Gracias por tu compra ${usuario.name} </h3>
             
             <div> Orden de compra: Producto: ${createNewOrder.products[0]._id}  Cantidad: ${createNewOrder.products[0].cantidad} </div>
             `
-        })   
-        console.log(createNewOrder.products[0].cantidad) 
+        })
+        console.log(createNewOrder.products[0].cantidad)
         res
             .status(201)
-            .json({createNewOrder, message:''})
-            
+            .json({ createNewOrder, message: 'Order created' })
+
     } catch (error) {
-    console.error(error)
-    res
-        .status(500)
-        .json({message:'Problema con la orden de compra'})
+        console.error(error)
+        res
+            .status(500)
+            .json({ message: 'Purchase order problem' })
     }
 };
 
 
 
-orderController.readOrder = async (req, res) =>{
+orderController.readOrder = async (req, res) => {
 
     try {
-      const readorders = await orderModel.findById(req.params.id)
+        const readorders = await orderModel.findById(req.params.id)
 
         res
             .status(201)
-            .json({readorders, message:''})
+            .json({ readorders, message: 'Read order' })
     } catch (error) {
         console.error(error)
-    res
-        .status(500)
-        .json({message:'Problema al ver la orden de compra'})
-    }
-}
-
-
-//ver compras
-
-orderController.readAllOrders = async (req, res) =>{
-
-    try {
-      const readorders = await orderModel.find()
-
         res
-            .status(201)
-            .json({readorders, message:''})
-    } catch (error) {
-        console.error(error)
-    res
-        .status(500)
-        .json({message:'Problema al ver la orden de compra'})
+            .status(500)
+            .json({ message: 'Problem seeing purchase order' })
     }
 }
 
 
 
-orderController.updateOrder = async (req, res) =>{
+
+orderController.readAllOrders = async (req, res) => {
+
+    try {
+        const readorders = await orderModel.find()
+
+        res
+            .status(201)
+            .json({ readorders, message: 'Read all the orders' })
+    } catch (error) {
+        console.error(error)
+        res
+            .status(500)
+            .json({ message: 'Problem seeing purchase orders' })
+    }
+}
+
+
+
+orderController.updateOrder = async (req, res) => {
     try {
         const buscandoOrder = await orderModel.findById(req.params.id)
         console.log(buscandoOrder.products[0]._id)//producto
@@ -88,52 +95,51 @@ orderController.updateOrder = async (req, res) =>{
         /* let orderEditada= await orderModel.findByIdAndUpdate(req.params.id, req.body, { new: true});
         console.log(orderEditada) */
 
-       /*  await transporter.sendMail({
+        /*  await transporter.sendMail({
+ 
+             to:usuario.email,
+             html:`
+             <h3>Tu order a sido editada ${usuario.name} </h3>
+             
+             <div> Orden de compra: Producto: ${createNewOrder.products[0]._id}  Cantidad: ${createNewOrder.products[0].cantidad} </div>
+             `
+         })   
+  */
 
-            to:usuario.email,
-            html:`
-            <h3>Tu order a sido editada ${usuario.name} </h3>
-            
-            <div> Orden de compra: Producto: ${createNewOrder.products[0]._id}  Cantidad: ${createNewOrder.products[0].cantidad} </div>
-            `
-        })   
- */
-
-        res.json({ buscandoOrder, message: 'usuario actualizado' })
+        res.json({ buscandoOrder, message: 'Updating order' })
     } catch (error) {
-        
+        console.error(error)
+        res
+            .status(500)
+            .json({ message: 'Problem updating the order' })
     }
 }
 
+
 orderController.deleteOrder = async (req, res) => {
     try {
-        
-
 
         let { id } = req.params;
         let order = await orderModel.findById(id)
         console.log(order.user)
-        let user = await userModel.findByIdAndUpdate(order.user,{
-            $pull:{
-                orders: order._id 
+        let user = await userModel.findByIdAndUpdate(order.user, {
+            $pull: {
+                orders: order._id
             }
-        },{new: true})
+        }, { new: true })
         console.log(user)
-       // await orderModel.findByIdAndDelete(id)
-        res.json({user,  message: 'Delete Order' })
+
+        res.json({ user, message: 'Delete Order' })
     } catch (error) {
         console.error(error)
-    res
-        .status(500)
-        .json({message:'Problema al borrar la orden de compra'})  
+        res
+            .status(500)
+            .json({ message: 'Problema al borrar la orden de compra' })
     }
 
 }
 
 
 
-// ver todas las compras
-//modifica compra (por vendedor)
-//borrar compra 
-//factura
+
 module.exports = orderController;

@@ -9,17 +9,17 @@ ProductController.createProduct = async (req, res) => {
 console.log(req.usuario)
 console.log(req.usuario._id)
         let { categories} = req.body
-        const producto = await ProductsModel.create({...req.body,
+        const product = await ProductsModel.create({...req.body,
             userId: req.usuario._id
         })
         let createNewProduct = await CategoryModel.findByIdAndUpdate(categories, {
             $push: {
-                products: producto._id
+                products: product._id
             }
         }, { new: true })
         let vendedorCreaProducto = await UserModel.findByIdAndUpdate(req.usuario._id, {
             $push: {
-                products: producto._id
+                products: product._id
             }
         }, { new: true })
         console.log(vendedorCreaProducto)
@@ -27,13 +27,13 @@ console.log(req.usuario._id)
 
         res
             .status(201)
-            .json({ producto, message: '' })
+            .json({ product, message: 'Product created' })
 
     } catch (error) {
         console.error(error)
         res
             .status(500)
-            .json({ message: 'Hubo un problema al crear el producto' })
+            .json({ message: 'There was a problem creating the product' })
     }
 };
 
@@ -48,10 +48,11 @@ ProductController.readProduct = async (req, res) => {
 
         if (!productData) {
             return res
-                .status(200)
+                //status?
                 .json({ message: 'There is no such product mmg' })
         }
         res
+            .status(200)
             .json({ productData })
 
     }
@@ -78,7 +79,7 @@ ProductController.getAllProducts = async (req, res) => {
         console.error(error)
         res
             .status(500)
-            .json({ message: 'Hubo un problema al obtener los productos' })
+            .json({ message: 'There was a problem getting the products' })
     }
 };
 
@@ -87,12 +88,12 @@ ProductController.upadateProduct = async (req, res) => {
 
         let updateProduct = await ProductsModel.findByIdAndUpdate(req.params.id, req.body, { new: true })
         console.log(updateProduct)
-        res.json({ updateProduct, message: 'actualizado el producto' })
+        res.json({ updateProduct, message: 'updated product' })
     } catch (error) {
         console.error(error)
         res
             .status(500)
-            .json({ message: 'Hubo un problema al actualizar el producto' })
+            .json({ message: 'There was a problem updating the product' })
 
     }
 };
@@ -101,19 +102,19 @@ ProductController.deleteProduct = async (req, res) => {
     try {
 
         let { id } = req.params;
-        let producto = await ProductsModel.findById(id)
-        console.log(producto.userId)
-        console.log(producto)
-        let categoria = await CategoryModel.findByIdAndUpdate(producto.categories, {
+        let product = await ProductsModel.findById(id)
+        console.log(product.userId)
+        console.log(product)
+        let categoriesP = await CategoryModel.findByIdAndUpdate(product.categories, {
             $pull: {
-                products: producto._id
+                products: product._id
             }
         }, { new: true })
-        console.log(categoria)
+        console.log(categoriesP)
 
-        let vendedor = await UserModel.findByIdAndUpdate(producto.userId, {
+        let vendedor = await UserModel.findByIdAndUpdate(product.userId, {
             $pull: {
-                products: producto._id
+                products: product._id
             }
         }, { new: true })
 
@@ -125,7 +126,7 @@ ProductController.deleteProduct = async (req, res) => {
         console.log(console.error(error))
         res
             .status(500)
-            .json({ message: 'Hubo un problema al eliminar el producto' })
+            .json({ message: 'Hubo un problema al eliminar el product' })
     }
 };
 
@@ -155,6 +156,8 @@ ProductController.readProductPvendedor = async (req, res) => {
 
     }
 };
+
+
 //Producto por categoria (se le pasa id de categoria)
 ProductController.readProductPcategoria = async (req, res) => {
     try {
@@ -185,7 +188,7 @@ ProductController.readProductPcategoria = async (req, res) => {
 ProductController.readProductByName = async (req, res) => {
     try {
         console.log(req.params)
-        // Product.find({ name: /.*req.params.name.*/i })
+       
         const name = new RegExp(`${req.params.name}`, 'i')
         console.log(name)
         const productoName = await ProductsModel.aggregate([{
@@ -203,6 +206,71 @@ ProductController.readProductByName = async (req, res) => {
 
     }
 
+};
+
+ProductController.readProductMasVendido= async(req,res)=>{
+    try {
+       let masvendidos= await ProductsModel.aggregate([
+
+        {$project:
+            {
+                ventas:{$size:{"$ifNull":["$orderIds",[]]} },
+                _id: "$_id",
+                image_path : "$image_path",
+                name : "$name",
+            },
+          
+        },
+        {$match: {
+            ventas: {
+                $gt:0
+            }
+        }},
+        {$sort : {ventas : -1}}, 
+        {$limit : 5 },
+        
+    ])  
+
+      res
+            .status(200)
+            .json({'vendidos': masvendidos})
+
+    } catch (error) {
+        console.error(error)
+        res
+            .status(500)
+            .json({ message: 'Hubo un problema al obtener los productos' })
+    }
+}
+
+ProductController.getByPriceMayorAMenor = async (req, res) => {
+    try {
+        let getByPrice = await ProductsModel.find().sort({price: -1})
+
+        res
+            .status(201)
+            .json(getByPrice)
+    } catch (error) {
+        console.error(error)
+        res
+            .status(500)
+            .json({ message: 'Hubo un problema al obtener los productos' })
+    }
+};
+
+ProductController.getByPriceMenorAMayor = async (req, res) => {
+    try {
+        let getByPrice = await ProductsModel.find().sort({price: 1})
+
+        res
+            .status(201)
+            .json(getByPrice)
+    } catch (error) {
+        console.error(error)
+        res
+            .status(500)
+            .json({ message: 'Hubo un problema al obtener los productos' })
+    }
 };
 
 ProductController.createComments = async (req, res) => {
