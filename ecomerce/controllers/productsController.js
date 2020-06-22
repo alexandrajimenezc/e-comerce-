@@ -112,37 +112,37 @@ ProductController.deleteProduct = async (req, res) => {
         }, { new: true })
         console.log(categoriesP)
 
-        let vendedor = await UserModel.findByIdAndUpdate(product.userId, {
+        let seller = await UserModel.findByIdAndUpdate(product.userId, {
             $pull: {
                 products: product._id
             }
         }, { new: true })
 
-        console.log(vendedor)
+        console.log(seller)
         await ProductsModel.findByIdAndDelete(req.params.id)
         res
-            .json({ message: 'eliminado' })
+            .json({ message: 'removed' }) //status?
     } catch (error) {
         console.log(console.error(error))
         res
             .status(500)
-            .json({ message: 'Hubo un problema al eliminar el product' })
+            .json({ message: 'There was a problem removing the product' })
     }
 };
 
-//producto por vendedor (se le pasa id vendedor)
+
 ProductController.readProductPvendedor = async (req, res) => {
     try {
 
         let { id } = req.params;
-        const vendedor = await UserModel.findById(id)
-        console.log(vendedor)
+        const seller = await UserModel.findById(id)
+        console.log(seller)
         const productData = await ProductsModel.find({ userId: id }).populate('categories')
 
         if (!productData) {
             return res
                 .status(200)
-                .json({ message: 'no existe este producto para algún vendedor' })
+                .json({ message: 'there is no product for any seller' })
         }
         res
             .json({ productData })
@@ -152,25 +152,24 @@ ProductController.readProductPvendedor = async (req, res) => {
         console.error(error)
         res
         status(500)
-            .json({ message: 'problem when viewing product data' });
+            .json({ message: 'problem getting product data by seller ' });
 
     }
 };
 
 
-//Producto por categoria (se le pasa id de categoria)
 ProductController.readProductPcategoria = async (req, res) => {
     try {
 
         let { id } = req.params;
-        const categoria = await CategoryModel.findById(id)
-        console.log(categoria)
+        const categoriesP = await CategoryModel.findById(id)
+        console.log(categoriesP)
         const productData = await ProductsModel.find({ categories: id }).populate('categories')
 
         if (!productData) {
             return res
                 .status(200)
-                .json({ message: 'no existe este producto para algún categoria' })
+                .json({ message: 'this product does not exist for any category' })
         }
         res
             .json({ productData })
