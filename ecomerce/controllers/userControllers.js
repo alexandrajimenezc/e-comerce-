@@ -11,7 +11,7 @@ const UserController = {}
 UserController.createUser = async (req, res) => {
     try {
         const user = await UserModel.create(req.body);
-        req.body.role = "usuario";
+        req.body.role = "userMiddle";
         const emailtoken = jwt.sign( { email: user.email }, config, { expiresIn: '2d' } )
         const url = 'http://localhost:3000/users/confirm/' + emailtoken
            await transporter.sendMail({
@@ -42,7 +42,7 @@ try {
     const email = jwt.verify( token, config ).email
     const userData= await UserModel.findOneAndUpdate({email},{confirmado: true},{new:true})
     console.log(userData)
-    res.json({message:'correo verificado'})
+    res.json({message:'verified mail'})
 } catch (error) {
     console.error(error)
         res
@@ -56,30 +56,30 @@ UserController.loginUser = async (req, res) => {
     try {
       
  
-        const usuario = await UserModel.findOne({
+        const userMiddle = await UserModel.findOne({
             $or: [{email: req.body.email},  { username: req.body.username }]
         })
-        console.log(usuario) 
+        console.log(userMiddle) 
 
-        if (!usuario) {
+        if (!userMiddle) {
             res
                 .status(400)
                 .send({
-                    message: 'This user does not exist'
+                    message: 'This user does not exist/Password or user error'
                 });
         }
-        const isMatch = await bcrypt.compare(req.body.password, usuario.password);
+        const isMatch = await bcrypt.compare(req.body.password, userMiddle.password);
         if (!isMatch) {
             res
                 .status(400)
                 .send({
-                    message: 'Key error'
+                    message: 'Password or user error'
                 });
         }
-        const token = jwt.sign({ _id: usuario._id }, config, {
+        const token = jwt.sign({ _id: userMiddle._id }, config, {
             expiresIn: '2y' //2AÑOS
         });
-        await UserModel.findByIdAndUpdate(usuario._id, {
+        await UserModel.findByIdAndUpdate(userMiddle._id, {
             $push: {
                 tokens: token
             }
@@ -87,9 +87,9 @@ UserController.loginUser = async (req, res) => {
         res
             .status(202)
             .json({
-                usuario,
+                userMiddle,
                 token,
-                message: 'WELCOME ' + usuario.name
+                message: 'WELCOME ' + userMiddle.name
             });
 
     }
@@ -115,16 +115,16 @@ UserController.readUser = async (req, res) => {
         }  */
 
 
-/* //probara así
-        const usuario= await UserModel.findById(req.usuario._id)
+/* //probar así
+        const userMiddle= await UserModel.findById(req.userMiddle._id)
         .populate('wishList')
         .populate('orders')
 
         res
-            .json({usuario}) */
-        //solo esto y devuelve la inf del usuario
+            .json({userMiddle}) */
+        //solo esto y devuelve la inf del userMiddle
         res
-        .json({usuario: req.usuario.populate('orders')})
+        .json({userMiddle: req.userMiddle.populate('orders')})
     
     }
     catch (error) {
@@ -139,7 +139,7 @@ UserController.getAllUsers = async (req, res) => {
     try {
     
         const users = await UserModel.find()
-        console.log(req.body.role)
+       // console.log(req.body.role)
         res
             .status(200)
             .json({users})
@@ -151,7 +151,7 @@ UserController.getAllUsers = async (req, res) => {
         console.error(error);
         res
             .status(500)
-            .send(error)
+            .json({ message: 'problem getting users' });
 
     }
 
@@ -159,14 +159,14 @@ UserController.getAllUsers = async (req, res) => {
 
 UserController.updateUser = async (req, res) => {
     try {
-        console.log(req.usuario.role)
-        if(req.usuario.role === 'usuario') req.body.role = 'usuario';
-        console.log(req.usuario.role)
+        console.log(req.userMiddle.role)
+        if(req.userMiddle.role === 'userMiddle') req.body.role = 'userMiddle';
+        console.log(req.userMiddle.role)
         const userData = { ...req.body }
         if ( req.file ) userData.imagePath = req.file.filename;
         if ( req.body.password ) userData.password = await bcrypt.hash( req.body.password, 10 );
-        const usuario = await UserModel.findByIdAndUpdate( req.usuario._id, userData, { new: true } )
-        res.json({ usuario, message: 'usuario actualizado' })
+        const userMiddle = await UserModel.findByIdAndUpdate( req.userMiddle._id, userData, { new: true } )
+        res.json({ userMiddle, message: 'updated user' })
 
     
     } catch (error) {
@@ -178,20 +178,20 @@ UserController.updateUserA = async (req, res) => {
     try {
       
 
-        let usuario = await UserModel.findByIdAndUpdate(req.params.id, req.body, { new: true});
-        console.log(usuario)
-        res.json({ usuario, message: 'usuario actualizado' }) 
+        let userMiddle = await UserModel.findByIdAndUpdate(req.params.id, req.body, { new: true});
+        console.log(userMiddle)
+        res.json({ userMiddle, message: 'updated user' }) 
     } catch (error) {
         console.error(error)
         res.status(500).json({ message: 'Problem editing user data' });
     }
 }
 
-// falta que si se borra el usuario se eliminen sus productos
+// falta que si se borra el userMiddle se eliminen sus productos
 UserController.deleteUser = async (req, res) => {
     try {
 
-        await UserModel.findByIdAndDelete( req.usuario._id )
+        await UserModel.findByIdAndDelete( req.userMiddle._id )
         res.json({ message: 'Deleted User' })
       
     } catch (error) {
@@ -214,28 +214,28 @@ UserController.deleteUserA = async (req, res) => {
 
 
 UserController.logout= async (req, res)=> {
-     const usuarioLogOut = await UserModel.findByIdAndUpdate(req.usuario._id, {
+     const userMiddleLogOut = await UserModel.findByIdAndUpdate(req.userMiddle._id, {
             $pull: {
                 tokens: req.headers.authorization
             }
         },{ new: true})
-res.json({usuarioLogOut, message:`${usuarioLogOut.name} cerro sesión`})
+res.json({userMiddleLogOut, message:`${userMiddleLogOut.name} cerro sesión`})
 }
 
 
 UserController.resetPassword= async (req,res) =>{
         try {  
   
-            console.log(req.usuario)
+            console.log(req.userMiddle)
             console.log(req.body)
             console.log(req.body.password)
             const salt= await bcrypt.genSalt(10);
-            const clave= await bcrypt.hash(req.body.password, salt);
-            const user = await UserModel.findOneAndUpdate({email: req.usuario.email},{password: clave},{new:true})
+            const password_Key= await bcrypt.hash(req.body.password, salt);
+            const user = await UserModel.findOneAndUpdate({email: req.userMiddle.email},{password: password_Key},{new:true})
 
-            console.log(clave)
+            console.log(password_Key)
             console.log(user)
-            res.json({usuario: req.usuario})
+            res.json({userMiddle: req.userMiddle})
 
        
         

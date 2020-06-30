@@ -9,9 +9,9 @@ orderController.createOrder = async (req, res) => {
 
 
         req.body.status = 'pending';
-        req.body.user = req.usuario._id
+        req.body.user = req.userMiddle._id
         const createNewOrder = await orderModel.create(req.body)
-        const usuario = await userModel.findByIdAndUpdate(req.body.user, {
+        const userMiddle = await userModel.findByIdAndUpdate(req.body.user, {
             $push: {
                 orders: createNewOrder._id
             }
@@ -27,9 +27,9 @@ orderController.createOrder = async (req, res) => {
         console.log(product)
         await transporter.sendMail({
 
-            to: usuario.email,
+            to: userMiddle.email,
             html: `
-            <h3>Gracias por tu compra ${usuario.name} </h3>
+            <h3>Gracias por tu compra ${userMiddle.name} </h3>
             
             <div> Orden de compra: Producto: ${createNewOrder.products[0]._id}  Cantidad: ${createNewOrder.products[0].cantidad} </div>
             `
@@ -97,9 +97,9 @@ orderController.updateOrder = async (req, res) => {
 
         /*  await transporter.sendMail({
  
-             to:usuario.email,
+             to:userMiddle.email,
              html:`
-             <h3>Tu order a sido editada ${usuario.name} </h3>
+             <h3>Tu order a sido editada ${userMiddle.name} </h3>
              
              <div> Orden de compra: Producto: ${createNewOrder.products[0]._id}  Cantidad: ${createNewOrder.products[0].cantidad} </div>
              `
@@ -134,7 +134,7 @@ orderController.deleteOrder = async (req, res) => {
         console.error(error)
         res
             .status(500)
-            .json({ message: 'Problema al borrar la orden de compra' })
+            .json({ message: 'Problem deleting purchase order' })
     }
 
 }

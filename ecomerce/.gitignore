@@ -1,3 +1,5 @@
 node_modules
 .env
 password.js
+cypress
+cypress.json

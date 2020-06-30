@@ -6,18 +6,18 @@ const ProductController = {};
 
 ProductController.createProduct = async (req, res) => {
     try {
-console.log(req.usuario)
-console.log(req.usuario._id)
+console.log(req.userMiddle)
+console.log(req.userMiddle._id)
         let { categories} = req.body
         const product = await ProductsModel.create({...req.body,
-            userId: req.usuario._id
+            userId: req.userMiddle._id
         })
         let createNewProduct = await CategoryModel.findByIdAndUpdate(categories, {
             $push: {
                 products: product._id
             }
         }, { new: true })
-        let vendedorCreaProducto = await UserModel.findByIdAndUpdate(req.usuario._id, {
+        let vendedorCreaProducto = await UserModel.findByIdAndUpdate(req.userMiddle._id, {
             $push: {
                 products: product._id
             }
@@ -238,7 +238,7 @@ ProductController.readProductMasVendido= async(req,res)=>{
         console.error(error)
         res
             .status(500)
-            .json({ message: 'Hubo un problema al obtener los productos' })
+            .json({ message: 'problem when viewing product data' })
     }
 }
 
@@ -253,7 +253,7 @@ ProductController.getByPriceMayorAMenor = async (req, res) => {
         console.error(error)
         res
             .status(500)
-            .json({ message: 'Hubo un problema al obtener los productos' })
+            .json({ message: 'problem when viewing product data' })
     }
 };
 
@@ -268,7 +268,7 @@ ProductController.getByPriceMenorAMayor = async (req, res) => {
         console.error(error)
         res
             .status(500)
-            .json({ message: 'Hubo un problema al obtener los productos' })
+            .json({ message: 'problem when viewing product data' })
     }
 };
 
@@ -278,7 +278,7 @@ ProductController.createComments = async (req, res) => {
         const product = await ProductsModel.findByIdAndUpdate(req.params._id, {
             $push: {
                 commentsOfProduct: {
-                    ...req.body, commentsDate: new Date(), userId: req.usuario._id
+                    ...req.body, commentsDate: new Date(), userId: req.userMiddle._id
                 }
             }
         },
@@ -290,7 +290,7 @@ ProductController.createComments = async (req, res) => {
         console.error(error)
         res
         status(500)
-            .json({ message: 'problem when viewing product data' });
+            .json({ message: 'problem seeing product reviews' });
     }
 };
 
@@ -312,7 +312,7 @@ ProductController.deleteComments = async (req, res) => {
         console.error(error)
         res
         status(500)
-            .json({ message: 'problem when viewing product data' });
+            .json({ message: 'problem deleting product reviews' });
     }
 };
 
@@ -320,17 +320,17 @@ ProductController.addTowishList = async (req, res) => {
     try {
         const product = await ProductsModel.findByIdAndUpdate(req.params._id, {
              $push: {
-                  wishListP: req.usuario._id 
+                  wishListP: req.userMiddle._id 
                 } 
             }, 
             { new: true });
-        const usuario = await UserModel.findByIdAndUpdate(req.usuario._id, { 
+        const user = await UserModel.findByIdAndUpdate(req.userMiddle._id, { 
             $push: { 
                  wishListU: req.params._id 
                 } 
             },
              { new: true });
-        console.log(usuario)
+        console.log(user)
         console.log(product)
         res.json({ product })
     } catch (error) {
@@ -345,17 +345,17 @@ ProductController.deleteTowishList= async (req, res) => {
     try {
         const product = await ProductsModel.findByIdAndUpdate(req.params._id, { 
             $pull: {
-                 wishListP: req.usuario._id 
+                 wishListP: req.userMiddle._id 
                 } 
             }, 
             { new: true });
-        const usuario = await UserModel.findByIdAndUpdate(req.usuario._id, { 
+        const userMiddle = await UserModel.findByIdAndUpdate(req.userMiddle._id, { 
             $pull: { 
                 wishListU: req.params._id 
             } 
         }, 
         { new: true });
-        console.log(usuario)
+        console.log(userMiddle)
         console.log(product)
         res.json({product});
     } catch (error) {
